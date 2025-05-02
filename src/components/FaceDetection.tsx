@@ -149,39 +149,41 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
         
         // Draw detections on canvas
         faces.forEach((face, index) => {
-          // Draw detection box
-          ctx?.strokeRect(
-            face.boundingBox.x,
-            face.boundingBox.y,
-            face.boundingBox.width,
-            face.boundingBox.height
-          );
-          
-          // Draw label
-          ctx?.fillStyle = '#2563EB';
-          ctx?.fillRect(
-            face.boundingBox.x,
-            face.boundingBox.y - 25,
-            80,
-            20
-          );
-          
-          ctx?.fillStyle = '#FFFFFF';
-          ctx?.font = '12px Inter';
-          ctx?.fillText(
-            `Face #${index + 1}`,
-            face.boundingBox.x + 5,
-            face.boundingBox.y - 10
-          );
-          
-          // Draw landmarks
-          if (face.landmarks) {
-            face.landmarks.forEach(landmark => {
-              ctx?.fillStyle = '#3B82F6';
-              ctx?.beginPath();
-              ctx?.arc(landmark.x, landmark.y, 1, 0, 2 * Math.PI);
-              ctx?.fill();
-            });
+          if (ctx) {
+            // Draw detection box
+            ctx.strokeRect(
+              face.boundingBox.x,
+              face.boundingBox.y,
+              face.boundingBox.width,
+              face.boundingBox.height
+            );
+            
+            // Draw label
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(
+              face.boundingBox.x,
+              face.boundingBox.y - 25,
+              80,
+              20
+            );
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '12px Inter';
+            ctx.fillText(
+              `Face #${index + 1}`,
+              face.boundingBox.x + 5,
+              face.boundingBox.y - 10
+            );
+            
+            // Draw landmarks
+            if (face.landmarks) {
+              face.landmarks.forEach(landmark => {
+                ctx.fillStyle = '#3B82F6';
+                ctx.beginPath();
+                ctx.arc(landmark.x, landmark.y, 1, 0, 2 * Math.PI);
+                ctx.fill();
+              });
+            }
           }
         });
       } catch (error) {
