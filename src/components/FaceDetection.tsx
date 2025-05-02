@@ -13,6 +13,7 @@ import { FaceDetection as FaceDetectionType } from '@/types/face';
 import { v4 as uuidv4 } from 'uuid';
 import { Progress } from '@/components/ui/progress';
 import { ImageOff } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface FaceDetectionProps {
   videoRef?: React.RefObject<HTMLVideoElement>;
@@ -33,7 +34,8 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
     const loadModels = async () => {
       try {
         setModelLoading(true);
-        const MODEL_URL = '/models';
+        // Use a CDN for model files instead of local files
+        const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
         
         // Simulate loading progress
         const loadingInterval = setInterval(() => {
@@ -55,14 +57,23 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
         setLoadingProgress(100);
         
         dispatch(setIsModelLoaded(true));
-        console.log('Face detection models loaded');
+        console.log('Face detection models loaded successfully');
+        toast({
+          title: "Models Loaded",
+          description: "Face detection models loaded successfully."
+        });
         
         setTimeout(() => {
           setModelLoading(false);
         }, 500);
       } catch (error) {
         console.error('Error loading models:', error);
-        dispatch(setError('Failed to load face detection models.'));
+        dispatch(setError('Failed to load face detection models. Check console for details.'));
+        toast({
+          title: "Error",
+          description: "Failed to load face detection models.",
+          variant: "destructive"
+        });
         setModelLoading(false);
       }
     };
