@@ -3,8 +3,8 @@
 
 This directory should contain the face-api.js model files if you want to use local models.
 
-However, the application is currently configured to load models from a CDN:
-https://justadudewhohacks.github.io/face-api.js/models
+However, the application is currently configured to load models from GitHub:
+https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights
 
 If you want to use local models instead, you can download them from:
 https://github.com/justadudewhohacks/face-api.js/tree/master/weights

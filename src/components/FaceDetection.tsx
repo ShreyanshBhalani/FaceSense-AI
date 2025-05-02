@@ -34,8 +34,8 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
     const loadModels = async () => {
       try {
         setModelLoading(true);
-        // Use a CDN for model files instead of local files
-        const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+        // Use GitHub as the CDN source for model files
+        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
         
         // Simulate loading progress
         const loadingInterval = setInterval(() => {
