@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
@@ -7,14 +6,15 @@ import { setIsWebcamActive, setError } from '@/store/faceDetectionSlice';
 import { RootState } from '@/store/store';
 
 interface WebcamProps {
+  videoRef: React.RefObject<HTMLVideoElement>;
   onStream: (stream: MediaStream) => void;
 }
 
-const Webcam: React.FC<WebcamProps> = ({ onStream }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+const Webcam: React.FC<WebcamProps> = ({ videoRef, onStream }) => {
   const dispatch = useDispatch();
   const { isWebcamActive } = useSelector((state: RootState) => state.faceDetection);
   const [loading, setLoading] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   const startWebcam = async () => {
     setLoading(true);
@@ -26,13 +26,13 @@ const Webcam: React.FC<WebcamProps> = ({ onStream }) => {
           facingMode: 'user',
         },
       };
-      
+
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      
+
       dispatch(setIsWebcamActive(true));
       dispatch(setError(null));
       onStream(stream);
@@ -47,11 +47,29 @@ const Webcam: React.FC<WebcamProps> = ({ onStream }) => {
   const stopWebcam = () => {
     const stream = videoRef.current?.srcObject as MediaStream;
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      // Capture the current frame before stopping the webcam
+      captureImage();
+
+      stream.getTracks().forEach((track) => track.stop());
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
       dispatch(setIsWebcamActive(false));
+    }
+  };
+
+  const captureImage = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/png');
+        setCapturedImage(imageData);
+      }
     }
   };
 
@@ -73,7 +91,7 @@ const Webcam: React.FC<WebcamProps> = ({ onStream }) => {
           muted
           className={`w-full h-full max-h-[60vh] object-cover ${!isWebcamActive ? 'hidden' : ''}`}
         />
-        {!isWebcamActive && (
+        {!isWebcamActive && !capturedImage && (
           <div className="flex items-center justify-center bg-gray-100 h-[60vh] w-full">
             <div className="text-center p-4">
               <CameraOff size={64} className="mx-auto text-gray-400 mb-4" />
@@ -82,6 +100,15 @@ const Webcam: React.FC<WebcamProps> = ({ onStream }) => {
                 Click the button below to activate your camera
               </p>
             </div>
+          </div>
+        )}
+        {!isWebcamActive && capturedImage && (
+          <div className="flex items-center justify-center bg-gray-100 h-[60vh] w-full">
+            <img
+              src={capturedImage}
+              alt="Captured"
+              className="object-contain max-h-full max-w-full"
+            />
           </div>
         )}
       </div>

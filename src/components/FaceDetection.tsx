@@ -29,6 +29,9 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
   const [loadingProgress, setLoadingProgress] = useState(0);
   const detectionIntervalRef = useRef<number | null>(null);
 
+  console.log("FaceDetection active:", active);
+  console.log("videoRef:", videoRef?.current);
+
   // Load face-api models
   useEffect(() => {
     const loadModels = async () => {
@@ -84,33 +87,63 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
     
     return () => {
       if (detectionIntervalRef.current) {
-        clearInterval(detectionIntervalRef.current);
+        window.clearInterval(detectionIntervalRef.current);
       }
     };
   }, [dispatch, isModelLoaded]);
 
   // Face detection logic
   useEffect(() => {
-    if (!isModelLoaded || !active) return;
+    if (!isModelLoaded || !active) {
+      console.log("Detection not active: isModelLoaded =", isModelLoaded, "active =", active);
+      return;
+    }
 
+    console.log("Setting up face detection");
+    
     const detectFaces = async () => {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current) {
+        console.log("Canvas ref not available");
+        return;
+      }
       
       const canvas = canvasRef.current;
-      const displaySize = { 
-        width: canvas.width, 
-        height: canvas.height 
-      };
-      
       let mediaElement: HTMLVideoElement | HTMLImageElement | null = null;
       
       if (videoRef?.current) {
         mediaElement = videoRef.current;
+        console.log("Using video element for detection");
       } else if (imageRef?.current) {
         mediaElement = imageRef.current;
+        console.log("Using image element for detection");
       }
       
-      if (!mediaElement || !displaySize.width || !displaySize.height) return;
+      if (!mediaElement) {
+        console.log("No media element found");
+        return;
+      }
+      
+      // Check if video is ready (has dimensions and is playing)
+      if (mediaElement instanceof HTMLVideoElement) {
+        if (mediaElement.paused || mediaElement.ended || !mediaElement.videoWidth) {
+          console.log("Video not ready:", mediaElement.paused ? "paused" : mediaElement.ended ? "ended" : "no dimensions");
+          return;
+        }
+      }
+      
+      // Set canvas dimensions to match the media element
+      const displaySize = { 
+        width: mediaElement.clientWidth || mediaElement.width, 
+        height: mediaElement.clientHeight || mediaElement.height 
+      };
+      
+      canvas.width = displaySize.width;
+      canvas.height = displaySize.height;
+      
+      if (!displaySize.width || !displaySize.height) {
+        console.log("Invalid display size:", displaySize);
+        return;
+      }
       
       try {
         dispatch(setIsDetecting(true));
@@ -133,6 +166,8 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
+
+        console.log("Detected faces:", resizedDetections.length);
 
         // Map to our face type and dispatch to Redux
         const faces: FaceDetectionType[] = resizedDetections.map(detection => {
@@ -162,6 +197,8 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
         faces.forEach((face, index) => {
           if (ctx) {
             // Draw detection box
+            ctx.strokeStyle = '#2563EB';
+            ctx.lineWidth = 2;
             ctx.strokeRect(
               face.boundingBox.x,
               face.boundingBox.y,
@@ -206,47 +243,23 @@ const FaceDetection: React.FC<FaceDetectionProps> = ({ videoRef, imageRef, activ
 
     if (videoRef?.current) {
       // For video, run detection on an interval
+      console.log("Starting detection interval for video");
       detectionIntervalRef.current = window.setInterval(detectFaces, 200);
+      detectFaces(); // Run once immediately
     } else if (imageRef?.current) {
       // For image, run detection once when active changes to true
+      console.log("Running detection once for image");
       detectFaces();
     }
 
     return () => {
+      console.log("Cleaning up detection interval");
       if (detectionIntervalRef.current) {
-        clearInterval(detectionIntervalRef.current);
+        window.clearInterval(detectionIntervalRef.current);
         detectionIntervalRef.current = null;
       }
     };
   }, [videoRef, imageRef, isModelLoaded, active, dispatch]);
-
-  // Handle canvas resize on window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (!canvasRef.current) return;
-      
-      const canvas = canvasRef.current;
-      let mediaElement: HTMLVideoElement | HTMLImageElement | null = null;
-      
-      if (videoRef?.current) {
-        mediaElement = videoRef.current;
-      } else if (imageRef?.current) {
-        mediaElement = imageRef.current;
-      }
-      
-      if (mediaElement) {
-        canvas.width = mediaElement.clientWidth;
-        canvas.height = mediaElement.clientHeight;
-      }
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [videoRef, imageRef]);
 
   if (modelLoading) {
     return (

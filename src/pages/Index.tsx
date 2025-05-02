@@ -57,11 +57,9 @@ const FaceDetectionApp: React.FC = () => {
         <div className="md:col-span-2">
           <div className="relative">
             <h2 className="text-xl font-bold mb-4">Camera Feed</h2>
-            <Webcam onStream={handleStream} />
+            <Webcam videoRef={videoRef} onStream={handleStream} />
             {detectionSource === DetectionSource.WEBCAM && (
-              <div className="relative">
-                <FaceDetection videoRef={videoRef} active={isWebcamActive} />
-              </div>
+              <FaceDetection videoRef={videoRef} active={isWebcamActive} />
             )}
           </div>
 
