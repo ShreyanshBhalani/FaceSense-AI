@@ -18,11 +18,11 @@ To get started locally, make sure you have **Node.js** and **npm** installed. Yo
 Then follow these steps:
 
 ```sh
-# Step 1: Clone the repository using your Git URL.
-git clone <YOUR_GIT_URL>
+# Step 1: Create a project directory.
+mkdir FaceSenseAI
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Clone the repository using your Git URL.
+git clone https://github.com/ShreyanshBhalani/FaceSense-AI.git
 
 # Step 3: Install the necessary dependencies.
 npm install
